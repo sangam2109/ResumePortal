@@ -8,11 +8,14 @@ import FileBase from 'react-file-base64';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MuiChipsInput } from 'mui-chips-input'
+import { openBase64NewTab } from '../CommonComponent/base64topdf';
+import { jwtDecode } from "jwt-decode";
+import EditIcon from '@mui/icons-material/Edit';
 
-import Box from '@mui/material/Box';
+// import Box from '@mui/material/Box';
 import axios from 'axios';
 import Grid from '@mui/material/Grid'; // Import Grid component
-import Navbar from './Navbar/Navbar';
+// import Navbar from './Navbar/Navbar';
 
 export default function Form() {
   const [formData, setFormData] = useState({
@@ -27,61 +30,195 @@ export default function Form() {
     location: '',
     resume: null
   });
-  
+  const [certificate, setCertificate] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
+  const [resume, setResume] = useState(null);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("authtoken");
+        const userid = decodeAuthToken(token)
+        const response = await axios.get(`http://localhost:8000/api/users/getuser/${userid}`);
+        const userData = response.data.data.userProfile;
+        console.log(userData)
 
-  // const handleSkillsChange = (chips) => {
-  //   setFormData({ ...formData, skills: chips });
-  // };
+        if (
+          userData.firstName &&
+          userData.lastName &&
+          userData.email &&
+          userData.contact &&
+          userData.experience &&
+          userData.education   &&
+            userData.skills &&
+            userData.location && 
+            userData.resume
+        ) {
+          setFormData(userData);
+          setIsEditing(false);
+        } else {
+          console.error('Error: Fetched data is incomplete.');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const technologyStack = [
+    "Android", "Angular", "ASP.NET", "AWS", "Bootstrap", "C#", "C++", "CSS", "Django", "Docker", "Express.js", "Flask", "Git", "Heroku", "HTML", "Java", "JavaScript", "Kubernetes", "Linux", "MongoDB", "MySQL", "Nginx", "Node.js", "PHP", "PostgreSQL", "Python", "React", "Redis", "Ruby on Rails", "SQLite", "Spring Boot", "Swift", "Tailwind CSS", "TensorFlow", "TypeScript", "Unity", "Vue.js"
+  ];
   const handleSkillsChange = (newChips) => {
     setFormData({ ...formData, skills: newChips });
   }
   const handleFileChange = (files) => {
     setFormData({ ...formData, resume: files.base64 });
+    setCertificate(files.base64);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('userId');
+      const formErrors = {};
+      if (formData.skills.length === 0) {
+        formErrors.skills = 'Skills cannot be blank';
+        toast.error("Skills cannot be blank")
+      }
+      if (!formData.firstName) {
+        formErrors.projectName = 'First Name cannot be blank';
+        toast.error("First Name cannot be blank")
+      }
+      if (!formData.lastName) {
+        formErrors.lastName = 'Last Name cannot be blank';
+        toast.error("Last Name cannot be blank")
+      }
+      if (!formData.resume) {
+        formErrors.resume = 'Resume cannot be blank';
+        toast.error("certificate cannot be blank")
+      }
+      if (!formData.location) {
+        formErrors.location = 'Location cannot be blank';
+        toast.error("Location cannot be blank")
+      }
+      if (!formData.education) {
+        formErrors.education = 'education cannot be blank';
+        toast.error("Education cannot be blank")
+      }
+      if (!formData.experience) {
+        formErrors.experience = 'Experience cannot be blank';
+        toast.error("Experience cannot be blank")
+      }
+      if (!formData.contact) {
+        formErrors.contact = 'contact cannot be blank';
+        toast.error("contact cannot be blank")
+      }
+      if (!formData.email) {
+        formErrors.email = 'Email cannot be blank';
+        toast.error("Email cannot be blank")
+      }
+
+      if (Object.keys(formErrors).length > 0) {
+        setErrors(formErrors);
+        return;
+      }
+
+      const token = localStorage.getItem('authtoken');
+      const userid=decodeAuthToken(token)
       console.log(token)
+ 
+      console.log(userid)
+      // console.log(formData)
+      const response = await axios.post('http://localhost:8000/userprofiles', { formData, userId: userid });
      
-        // Set user ID in formData
-      //  setFormData({ ...formData, userId: token });
-      
-      console.log(formData)
-      await axios.post('http://localhost:8000/userprofiles/', { ...formData, userId: token });
-      notifySuccess();
-      clearForm();
+   console.log("hello")
+      if (response.data.success) {
+        toast.success('Form submitted successfully!');
+        setIsSubmitting(false);
+        setIsEditing(false);
+      } else {
+        toast.error('Failed to submit form. Please try again later.');
+        setIsSubmitting(false);
+      }
     } catch (error) {
-      notifyFailure();
       console.error('Error submitting data:', error);
+      toast.error('An error occurred while submitting the form.');
+      setIsSubmitting(false);
+    }
+  };
+  const decodeAuthToken = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      // console.log(decodedToken)
+      const userid = decodedToken.user.id;
+      return userid;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
     }
   };
 
-  const notifySuccess = () => toast.success("Candidate Profile Successfully Uploaded!");
-  const notifyFailure = () => toast.error("Error Occurred During Uploading...");
 
-  const clearForm = () => {
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      contact: '',
-      experience: '',
-      education: '',
-      skills: [],
-      location: '',
-      resume: null
-    });
+
+  const handleViewCertificate = () => {
+    if (resume) {
+      openBase64NewTab(resume);
+    }
+    else {
+      openBase64NewTab(formData.resume);
+    }
   };
+  const handleEdit = () => {
+    setIsEditing((prevEditing) => !prevEditing);
+  };
+
 
   return (
     <>
       <Container style={{ paddingBottom: '20vh' }}>
+        <Container style={{ paddingInline: 0, paddingTop: 10 }} >
+          <Button
+            onClick={handleEdit}
+            color="primary"
+            variant="contained"
+            style={{
+              position: 'relative',
+              float: 'left',
+            }}
+          >
+            <EditIcon />
+          </Button>
+          {isEditing && (
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              color="primary"
+              variant="contained"
+              endIcon={<KeyboardArrowRightIcon />}
+              disabled={isSubmitting}
+              style={{
+                position: 'relative',
+                float: 'right',
+              }}
+            >
+              Submit
+            </Button>
+          )}
+          {!isEditing && (
+            <Button onClick={handleViewCertificate} variant="outlined" color="primary" style={{
+              position: 'relative',
+              float: 'right',
+            }}>
+              View Certificate
+            </Button>
+          )}
+        </Container>
         <Typography
           variant="h5"
           color='textSecondary'
@@ -91,6 +228,7 @@ export default function Form() {
           fontWeight='bold'
           margin={5}
           gutterBottom
+          
         >
           Please fill in your information below.
         </Typography>
@@ -110,6 +248,7 @@ export default function Form() {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
+                disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -121,6 +260,7 @@ export default function Form() {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
+                disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -132,6 +272,7 @@ export default function Form() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -143,6 +284,7 @@ export default function Form() {
                 name="contact"
                 value={formData.contact}
                 onChange={handleChange}
+                disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -154,6 +296,7 @@ export default function Form() {
                 name="experience"
                 value={formData.experience}
                 onChange={handleChange}
+                disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -165,6 +308,7 @@ export default function Form() {
                 name="education"
                 value={formData.education}
                 onChange={handleChange}
+                disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} >
@@ -172,7 +316,8 @@ export default function Form() {
                 label="Location"
                 variant="outlined"
                 fullWidth
-                required
+                required 
+                disabled={!isEditing || isSubmitting}
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
@@ -183,7 +328,7 @@ export default function Form() {
           <Grid container spacing={2} marginTop={1}>
             {/* Skills */}
             <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom textAlign={'left'}>
+              <Typography variant="h6" gutterBottom textAlign={'left'} disabled={!isEditing || isSubmitting}>
                 Skills
               </Typography>
               <MuiChipsInput
@@ -218,17 +363,7 @@ export default function Form() {
               </Grid>
 
               {/* Submit Button */}
-              <Grid item>
-                <Button
-                  type="submit"
-                  color='primary'
-                  variant="contained"
-                  endIcon={<KeyboardArrowRightIcon />}
-                  size='large'
-                >
-                  Submit
-                </Button>
-              </Grid>
+             
             </Grid>
           </Grid>
 

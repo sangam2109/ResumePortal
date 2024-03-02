@@ -46,9 +46,6 @@ function Login() {
         else {
           toast('Successfully logged in');
           localStorage.setItem('authtoken', json.authtoken);
-          localStorage.setItem('userId', json.body.user.id);
-          console.log(json.body.user.id)
-          console.log(json.body.user.role)
           const role = json.body.user.role
           setLoading(false);
           if (role === "admin") {
@@ -59,7 +56,7 @@ function Login() {
           } else {
             setTimeout(() => {
               // Adjust the routing logic as per your requirements
-              navigate('/')
+              navigate('/dashboard')
             }, 2000);
           }
 

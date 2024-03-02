@@ -7,6 +7,7 @@ import ForgotPassword from './Components/Authentication/Forgotpassword';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Admin from "./Components/AdminDashboard/Admin";
 import Navbar from './Components/Navbar/Navbar';
+import ProtectedRoute from './CommonComponent/ProtectedRoute';
 
 // import './App.css';
 
@@ -19,12 +20,11 @@ class App extends Component {
 
           <Routes>
             {/* Redirect to the dashboard if user is authenticated */}
-            <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify" element={<Verify />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute />} />
-            <Route path="/admin" element={<Admin/>}/>
+            <Route path="/admin" element={<ProtectedRoute path="/admin" component={Admin} />} />
+            <Route path="/dashboard" element={<ProtectedRoute path="/dashboard" component={DashBoard} />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
           </Routes>
         </BrowserRouter>
@@ -32,15 +32,5 @@ class App extends Component {
     );
   }
 }
-
-const ProtectedRoute = () => {
-  const isAuthenticated = localStorage.getItem('authtoken');
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  } else {
-    return <DashBoard />;
-  }
-};
 
 export default App;

@@ -6,8 +6,9 @@ const UserProfile=require('../../models/UserInfo').UserProfile;
 // Route to create a new user profile
 router.post('/', async (req, res) => {
     try {
-        const { userId, firstName, lastName, email, contact, experience, education, skills, location, resume } = req.body;
-
+        const {  firstName, lastName, email, contact, experience, education, skills, location, resume } = req.body.formData;
+        console.log(req.body)
+ const userId=req.body.userId
         // Find the UserInfo document by its ID
         console.log("in post.....")
         console.log(userId)
@@ -38,14 +39,14 @@ router.post('/', async (req, res) => {
         const savedUserInfo = await userInfo.save();
 
         // Respond with the saved userInfo
-        res.status(201).json(savedUserInfo);
+        res.status(201).json({ success: true, data: savedUserInfo } );
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
 });
 
 // Route to get all user profiles
-router.get('/', async (req, res) => {
+router.get('/getuser', async (req, res) => {
     try {
         // Retrieve all UserInfo documents and populate the userProfile field
         const userInfos = await UserInfo.find().populate('userProfile');
@@ -55,20 +56,20 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Route to get a user profile by ID
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        // Find the UserInfo document by its ID and populate the userProfile field
-        const userInfo = await UserInfo.findById(id).populate('userProfile');
-        if (!userInfo || !userInfo.userProfile) {
-            return res.status(404).json({ message: 'User profile not found' });
-        }
-        res.status(200).json(userInfo.userProfile);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// // Route to get a user profile by ID
+// router.get('/:id', async (req, res) => {
+//     const { id } = req.params;
+//     try {
+//         // Find the UserInfo document by its ID and populate the userProfile field
+//         const userInfo = await UserInfo.findById(id).populate('userProfile');
+//         if (!userInfo || !userInfo.userProfile) {
+//             return res.status(404).json({ message: 'User profile not found' });
+//         }
+//         res.status(200).json(userInfo.userProfile);
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// });
 
 // Route to delete a user profile by ID
 router.delete('/:id', async (req, res) => {
