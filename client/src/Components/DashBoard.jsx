@@ -10,7 +10,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { MuiChipsInput } from 'mui-chips-input'
 import { openBase64NewTab } from '../CommonComponent/base64topdf';
 import { jwtDecode } from "jwt-decode";
-import EditIcon from '@mui/icons-material/Edit';
+import EditIcon from '@mui/icons-material/Edit'; 
+import Autocomplete from '@mui/material/Autocomplete';
 
 // import Box from '@mui/material/Box';
 import axios from 'axios';
@@ -32,43 +33,61 @@ export default function Form() {
   });
   const [certificate, setCertificate] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationOptions, setLocationOptions] = useState([]);
   const [isEditing, setIsEditing] = useState(true);
   const [resume, setResume] = useState(null);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("authtoken");
-        const userid = decodeAuthToken(token)
-        const response = await axios.get(`http://localhost:8000/api/users/getuser/${userid}`);
-        const userData = response.data.data.userProfile;
-        console.log(userData)
+  const fetchLocations = async (input) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${input}`
+      );
+      const data = await response.json();
+      setLocationOptions(data);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+    }
+  };
+  const handleInputChange = (newInputValue) => {
+    fetchLocations(newInputValue);
+  };
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("authtoken");
+      const userid = decodeAuthToken(token)
+      const response = await axios.get(`http://localhost:8000/api/users/getuser/${userid}`);
+      const userData = response.data.data.userProfile;
+    
 
-        if (
-          userData.firstName &&
-          userData.lastName &&
-          userData.email &&
-          userData.contact &&
-          userData.experience &&
-          userData.education   &&
-            userData.skills &&
-            userData.location && 
-            userData.resume
-        ) {
-          setFormData(userData);
+      if (userData) {
+        
+        setTimeout(() => {
+          setFormData(prevData => ({
+            ...prevData,
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            contact: userData.contact || '',
+            experience: userData.experience || '',
+            education: userData.education || '',
+            skills: userData.skills || [],
+            location: userData.location || '',
+            resume: userData.resume || null
+          }));
           setIsEditing(false);
-        } else {
-          console.error('Error: Fetched data is incomplete.');
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
+          console.log(formData)
+        }, 1000); 
+      } else {
+        console.error('Error: Fetched data is incomplete.');
       }
-    };
-
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -312,15 +331,29 @@ export default function Form() {
               />
             </Grid>
             <Grid item xs={12} >
-            <TextField
-                label="Location"
-                variant="outlined"
+              <Autocomplete
                 fullWidth
-                required 
+                disablePortal
                 disabled={!isEditing || isSubmitting}
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
+                options={locationOptions}
+                getOptionLabel={(option) => option?.display_name }
+                inputValue={formData.location}
+         
+                onInputChange={(event, newInputValue) => {
+                  setFormData({ ...formData, location: newInputValue });
+                  handleInputChange(newInputValue);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Location"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={formData.location}
+                    disabled={!isEditing || isSubmitting}
+                  />
+                )}
               />
               </Grid>
           </Grid>
