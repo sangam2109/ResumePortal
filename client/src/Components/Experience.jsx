@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { Box } from '@mui/material'; // Import Box component
-import { technologyStack } from '../utils/TechnologyStack';
+import { jobtitles } from '../utils/TechnologyStack';
 
 export default function ExperienceInput({ formData, setFormData, isEditing }) {
     const [experiences, setExperiences] = useState([]);
@@ -31,11 +31,13 @@ export default function ExperienceInput({ formData, setFormData, isEditing }) {
         setFormData({ ...formData, experience: combinedExperience });
     };
 
+    // Generate year options from 0 to 80
+    const years = Array.from({ length: 81 }, (_, index) => index.toString());
+
     return (
         <Grid container spacing={2} alignItems="center" marginLeft={0} marginTop={2}>
             <Grid item xs={12}>
                 <TextField
-
                     label="Experience"
                     variant="outlined"
                     required
@@ -56,12 +58,18 @@ export default function ExperienceInput({ formData, setFormData, isEditing }) {
                             value={experience.year}
                             onChange={(e) => handleChangeExperience(index, 'year', e.target.value)}
                             disabled={!isEditing}
+                            error={isNaN(experience.year) || experience.year < 0 || experience.year > 80}
+                            helperText={
+                                isNaN(experience.year) || experience.year < 0 || experience.year > 80 ?
+                                    "Year must be a number between 0 and 80" :
+                                    ""
+                            }
                         />
                     </Grid>
                     <Grid item xs={4}>
                         <Autocomplete
                             fullWidth
-                            options={technologyStack}
+                            options={jobtitles}
                             value={experience.jobRole}
                             onChange={(e, newValue) => handleChangeExperience(index, 'jobRole', newValue)}
                             renderInput={(params) => <TextField {...params} label="Job Role" variant="outlined" />}
@@ -95,6 +103,5 @@ export default function ExperienceInput({ formData, setFormData, isEditing }) {
                 </Grid>
             )}
         </Grid>
-
     );
 }
