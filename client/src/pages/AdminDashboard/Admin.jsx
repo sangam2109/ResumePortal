@@ -5,7 +5,7 @@ import { Box } from '@mui/material';
 import { IconButton } from '@mui/material';
 import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
 import { PictureAsPdf as PdfIcon } from '@mui/icons-material';
-import { openBase64NewTab } from '../../CommonComponent/base64topdf';
+import { openBase64NewTab } from '../../utils/base64topdf';
 
 const AdminForm = () => {
     const [users, setUsers] = useState([]);

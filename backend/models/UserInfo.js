@@ -9,10 +9,11 @@ const userProfileSchema = new mongoose.Schema({
   },
   contact: {
     type: String,
-    match: /^[0-9]{10}$/ // Regex for 10-digit numeric contact number
+    match: /^\+\d{1,3}\d{10}$/ // Regex for phone numbers with any country code
   },
-  experience: { type: String },
-  education: { type: String },
+
+  experience: { type: [String] },
+  education: { type: [String] },
   skills: { type: [String] },
   location: { type: String },
   resume: String,

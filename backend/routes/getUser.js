@@ -7,9 +7,9 @@ const isAdmin = require('../middleware/isAdmin');
 router.get('/getuser/:userid', async (req, res) => {
   try {
     const userId = req.params.userid;
-    console.log(userId); // Logging the userId instead of urn
+    // console.log(userId); // Logging the userId instead of urn
     const user = await userInfo.findOne({ _id: userId }); // Finding user by _id instead of userId
-    console.log(user);
+    // console.log(user);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }

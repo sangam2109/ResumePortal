@@ -7,14 +7,14 @@ const UserProfile=require('../../models/UserInfo').UserProfile;
 router.post('/', async (req, res) => {
     try {
         const {  firstName, lastName, email, contact, experience, education, skills, location, resume } = req.body.formData;
-        console.log(req.body)
+        // console.log(req.body)
  const userId=req.body.userId
         // Find the UserInfo document by its ID
-        console.log("in post.....")
-        console.log(userId)
-        console.log(req.body)
+        // console.log("in post.....")
+        // console.log(userId)
+        // console.log(req.body)
         const userInfo = await UserInfo.findById( userId );
-        console.log(userInfo)
+        // console.log(userInfo)
         if (!userInfo) {
             return res.status(404).json({ message: 'UserInfo not found' });
         }

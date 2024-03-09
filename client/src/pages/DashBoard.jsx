@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
@@ -8,14 +8,21 @@ import FileBase from 'react-file-base64';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MuiChipsInput } from 'mui-chips-input'
-import { openBase64NewTab } from '../CommonComponent/base64topdf';
+import { openBase64NewTab } from '../utils/base64topdf';
 import { jwtDecode } from "jwt-decode";
-import EditIcon from '@mui/icons-material/Edit'; 
+import EditIcon from '@mui/icons-material/Edit';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import { technologyStack } from '../utils/TechnologyStack';
+import locationsdata from '../utils/locations.json'
 
 // import Box from '@mui/material/Box';
 import axios from 'axios';
 import Grid from '@mui/material/Grid'; // Import Grid component
+import ExperienceInput from '../Components/Experience';
+import EducationInput from '../Components/Education';
 // import Navbar from './Navbar/Navbar';
 
 export default function Form() {
@@ -25,8 +32,8 @@ export default function Form() {
     lastName: '',
     email: '',
     contact: '',
-    experience: '',
-    education: '',
+    experience: [],
+    education: [],
     skills: [],
     location: '',
     resume: null
@@ -40,30 +47,18 @@ export default function Form() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-  const fetchLocations = async (input) => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${input}`
-      );
-      const data = await response.json();
-      setLocationOptions(data);
-    } catch (error) {
-      console.error('Error fetching locations:', error);
-    }
-  };
-  const handleInputChange = (newInputValue) => {
-    fetchLocations(newInputValue);
-  };
+
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("authtoken");
       const userid = decodeAuthToken(token)
       const response = await axios.get(`http://localhost:8000/api/users/getuser/${userid}`);
       const userData = response.data.data.userProfile;
-    
+
 
       if (userData) {
-        
+
         setTimeout(() => {
           setFormData(prevData => ({
             ...prevData,
@@ -79,7 +74,7 @@ export default function Form() {
           }));
           setIsEditing(false);
           console.log(formData)
-        }, 1000); 
+        }, 1000);
       } else {
         console.error('Error: Fetched data is incomplete.');
       }
@@ -91,9 +86,7 @@ export default function Form() {
     fetchData();
   }, []);
 
-  const technologyStack = [
-    "Android", "Angular", "ASP.NET", "AWS", "Bootstrap", "C#", "C++", "CSS", "Django", "Docker", "Express.js", "Flask", "Git", "Heroku", "HTML", "Java", "JavaScript", "Kubernetes", "Linux", "MongoDB", "MySQL", "Nginx", "Node.js", "PHP", "PostgreSQL", "Python", "React", "Redis", "Ruby on Rails", "SQLite", "Spring Boot", "Swift", "Tailwind CSS", "TensorFlow", "TypeScript", "Unity", "Vue.js"
-  ];
+
   const handleSkillsChange = (newChips) => {
     setFormData({ ...formData, skills: newChips });
   }
@@ -149,14 +142,15 @@ export default function Form() {
       }
 
       const token = localStorage.getItem('authtoken');
-      const userid=decodeAuthToken(token)
+      const userid = decodeAuthToken(token)
       console.log(token)
- 
+
       console.log(userid)
       // console.log(formData)
+      console.log(formData)
       const response = await axios.post('http://localhost:8000/userprofiles', { formData, userId: userid });
-     
-   console.log("hello")
+
+      console.log("hello")
       if (response.data.success) {
         toast.success('Form submitted successfully!');
         setIsSubmitting(false);
@@ -196,12 +190,10 @@ export default function Form() {
   const handleEdit = () => {
     setIsEditing((prevEditing) => !prevEditing);
   };
-
-
   return (
     <>
-      <Container style={{ paddingBottom: '20vh' }}>
-        <Container style={{ paddingInline: 0, paddingTop: 10 }} >
+      <Container style={{ paddingBottom: '20vh', paddingTop: '10px' }}>
+        <Container style={{ paddingInline: 0, paddingTop: 10 }}>
           <Button
             onClick={handleEdit}
             color="primary"
@@ -247,17 +239,15 @@ export default function Form() {
           fontWeight='bold'
           margin={5}
           gutterBottom
-          
         >
           Please fill in your information below.
         </Typography>
         <ToastContainer />
         <form onSubmit={handleSubmit}>
-          {/* Personal Details */}
           <Typography variant="h6" gutterBottom textAlign={'left'}>
             Personal Details
           </Typography>
-          <Grid container spacing={2}> {/* Add Grid container with spacing */}
+          <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
                 label="First Name"
@@ -265,6 +255,7 @@ export default function Form() {
                 fullWidth
                 required
                 name="firstName"
+                placeholder='firstName'
                 value={formData.firstName}
                 onChange={handleChange}
                 disabled={!isEditing || isSubmitting}
@@ -277,6 +268,7 @@ export default function Form() {
                 fullWidth
                 required
                 name="lastName"
+                placeholder='Surname'
                 value={formData.lastName}
                 onChange={handleChange}
                 disabled={!isEditing || isSubmitting}
@@ -289,59 +281,60 @@ export default function Form() {
                 fullWidth
                 required
                 name="email"
+                placeholder='example@gmail.com'
                 value={formData.email}
                 onChange={handleChange}
                 disabled={!isEditing || isSubmitting}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                label="Contact"
-                variant="outlined"
-                fullWidth
-                required
-                name="contact"
+              <PhoneInput
+                placeholder="Enter phone number"
                 value={formData.contact}
-                onChange={handleChange}
+                onChange={(value) => setFormData({ ...formData, contact: value })}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  marginBottom: '10px',
+                  border: '1px solid #bdbdbd',
+                  borderRadius: '4px',
+                  lineHeight: '1.5',
+                  fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                  fontSize: '1rem',
+                  backgroundColor: 'transparent',
+                  transition: 'border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                  '&:focus': {
+                    borderColor: '#1976d2',
+                    boxShadow: '0 0 0 0.2rem rgba(25, 118, 210, 0.25)',
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#f5f5f5',
+                  }
+                }}
+                error={formData.contact ? isValidPhoneNumber(formData.contact) ? undefined : 'Invalid phone number' : 'Phone number required'}
                 disabled={!isEditing || isSubmitting}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Experience"
-                variant="outlined"
-                fullWidth
-                required
-                name="experience"
-                value={formData.experience}
-                onChange={handleChange}
-                disabled={!isEditing || isSubmitting}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Education"
-                variant="outlined"
-                fullWidth
-                required
-                name="education"
-                value={formData.education}
-                onChange={handleChange}
-                disabled={!isEditing || isSubmitting}
-              />
-            </Grid>
-            <Grid item xs={12} >
+            <ExperienceInput
+              formData={formData}
+              setFormData={setFormData}
+              isEditing={isEditing}
+            />
+            <EducationInput
+              formData={formData}
+              setFormData={setFormData}
+              isEditing={isEditing}
+            />
+            <Grid item xs={12}>
               <Autocomplete
                 fullWidth
                 disablePortal
                 disabled={!isEditing || isSubmitting}
-                options={locationOptions}
-                getOptionLabel={(option) => option?.display_name }
-                inputValue={formData.location}
-         
-                onInputChange={(event, newInputValue) => {
-                  setFormData({ ...formData, location: newInputValue });
-                  handleInputChange(newInputValue);
+                options={locationsdata}
+                getOptionLabel={(option) => option}
+                value={formData.location}
+                onChange={(event, newValue) => {
+                  setFormData({ ...formData, location: newValue });
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -350,56 +343,62 @@ export default function Form() {
                     variant="outlined"
                     fullWidth
                     required
-                    value={formData.location}
                     disabled={!isEditing || isSubmitting}
                   />
                 )}
               />
-              </Grid>
+            </Grid>
           </Grid>
-
           <Grid container spacing={2} marginTop={1}>
-            {/* Skills */}
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom textAlign={'left'} disabled={!isEditing || isSubmitting}>
                 Skills
               </Typography>
-              <MuiChipsInput
-                // label="Skills"
-                variant="outlined"
-                helperText="Press enter to add skills"
+              <Autocomplete
+                multiple
+                options={technologyStack}
                 value={formData.skills}
-                onChange={handleSkillsChange}
-                fullWidth
+                onChange={(event, newValue) => {
+                  setFormData({ ...formData, skills: newValue });
+                }}
+                disabled={!isEditing || isSubmitting}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      key={option}
+                      label={option}
+                      {...getTagProps({ index })}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    variant="outlined"
+                    label="Skills"
+                    placeholder="Type or select skills"
+                    fullWidth
+                    disabled={!isEditing || isSubmitting}
+                  />
+                )}
               />
             </Grid>
-            {/* Location */}
-            <Grid item xs={12}>
-              {/* <Typography variant="h6" gutterBottom textAlign={'left'} marginTop={2}>
-                Location
-              </Typography> */}
-
-              <Typography variant="h6" gutterBottom textAlign={'left'} marginTop={2}>
-                Upload Resume
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} container justifyContent="space-between">
-              {/* Upload Resume */}
-              <Grid item>
-
+            <Grid container marginTop={1} marginLeft={2}>
+              <Grid item xs={12} marginBottom={2}>
+                <Typography variant="h6" gutterBottom textAlign="left">
+                  Upload Resume
+                </Typography>
+              </Grid>
+              <Grid item xs={8}>
                 <FileBase
                   type="file"
                   multiple={false}
                   onDone={handleFileChange}
+                  style={{ display: 'none' }}
                 />
               </Grid>
-
-              {/* Submit Button */}
-             
             </Grid>
           </Grid>
-
         </form>
       </Container>
     </>
