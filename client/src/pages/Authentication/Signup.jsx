@@ -56,7 +56,8 @@ function Signup() {
           navigate('/verify')
         }, 2000);
       } else {
-        toast('🚫 Invalid Credentials');
+        
+        toast(json.message);
         setLoading(false);
       }
     } catch (error) {

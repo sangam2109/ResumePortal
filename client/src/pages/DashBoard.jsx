@@ -57,25 +57,26 @@ export default function Form() {
       const userData = response.data.data.userProfile;
 
 
-      if (userData) {
+      if (userData.firstName && userData.lastName && userData.email && userData.contact && userData.education && userData.experience && userData.location && userData.resume) {
 
         setTimeout(() => {
           setFormData(prevData => ({
             ...prevData,
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: userData.email || '',
-            contact: userData.contact || '',
-            experience: userData.experience || '',
-            education: userData.education || '',
-            skills: userData.skills || [],
-            location: userData.location || '',
-            resume: userData.resume || null
+            firstName: userData.firstName ,
+            lastName: userData.lastName ,
+            email: userData.email ,
+            contact: userData.contact ,
+            experience: userData.experience ,
+            education: userData.education ,
+            skills: userData.skills ,
+            location: userData.location ,
+            resume: userData.resume 
           }));
           setIsEditing(false);
           console.log(formData)
         }, 1000);
       } else {
+        setIsEditing(true);
         console.error('Error: Fetched data is incomplete.');
       }
     } catch (error) {

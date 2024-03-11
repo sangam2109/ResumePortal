@@ -69,9 +69,16 @@ export default function ExperienceInput({ formData, setFormData, isEditing }) {
                     <Grid item xs={4}>
                         <Autocomplete
                             fullWidth
-                            options={jobtitles}
+                            freeSolo
+                            options={jobtitles.sort((a, b) => -b.localeCompare(a))}
+                            groupBy={(option) => option[0].toUpperCase()} 
                             value={experience.jobRole}
                             onChange={(e, newValue) => handleChangeExperience(index, 'jobRole', newValue)}
+                            filterOptions={(options, { inputValue }) =>
+                                options.filter((option) =>
+                                    option.toLowerCase().includes(inputValue.toLowerCase())
+                                )
+                            } 
                             renderInput={(params) => <TextField {...params} label="Job Role" variant="outlined" />}
                             disabled={!isEditing}
                         />

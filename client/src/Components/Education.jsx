@@ -107,7 +107,9 @@ export default function EducationInput({ formData, setFormData, isEditing }) {
                         <Grid item xs={3} marginLeft={2}>
                             <Autocomplete
                                 fullWidth
-                                options={courseList}
+                            freeSolo
+                            options={courseList.sort((a, b) => -b.localeCompare(a))}
+                            groupBy={(option) => option[0].toUpperCase()} 
                                 value={edu.degree}
                                 onChange={(e, newValue) => handleChangeEducation(index, 'degree', newValue)}
                                 renderInput={(params) => <TextField {...params} label="Degree" variant="outlined" />}
@@ -118,9 +120,10 @@ export default function EducationInput({ formData, setFormData, isEditing }) {
                     <Grid item xs={4}>
                         <Autocomplete
                             key={index} // Added key prop
-                            options={collegeOptionsMemo}
-                            loading={loading}
                             freeSolo
+                            options={collegeOptionsMemo.sort((a, b) => -b.localeCompare(a))}
+                            groupBy={(option) => option[0].toUpperCase()} 
+                            loading={loading}
                             value={edu.institution}
                             onChange={(e, newValue) => handleChangeEducation(index, 'institution', newValue)}
                             onInputChange={handleUserInputChange}

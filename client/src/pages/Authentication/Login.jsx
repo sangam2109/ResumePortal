@@ -161,7 +161,16 @@ function Login() {
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
             <Grid container justifyContent="flex-end">
-              <Grid item>
+                <Grid item xs>
+                  <Link
+                    href="/forgotpassword"
+                    variant="body2" style={{ color: 'GrayText' }}
+                  >
+                    Forgot password?
+                  </Link>
+
+                </Grid>
+              <Grid item >
                 <Link href="/signup" variant="body2" style={{ color: 'GrayText' }}>
                   Do not have any account? Sign up here
                 </Link>

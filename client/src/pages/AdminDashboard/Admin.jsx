@@ -4,7 +4,7 @@ import { Card } from '@mui/material';
 import { Box } from '@mui/material';
 import { IconButton } from '@mui/material';
 import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
-import { PictureAsPdf as PdfIcon } from '@mui/icons-material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { openBase64NewTab } from '../../utils/base64topdf';
 
 const AdminForm = () => {
@@ -23,7 +23,7 @@ const AdminForm = () => {
                     .filter(user => user.role === 'user') // Filter by user role
                     .filter(user => user.userProfile.firstName !== undefined);
                 setUsers(filteredUsers);
-                console.log(users)
+
             } catch (error) {
                 console.error('Error fetching users:', error);
             }
@@ -32,9 +32,9 @@ const AdminForm = () => {
         fetchUsers();
     }, []);
 
-    const handleViewCertificate = (resume) => {
-        if (resume) {
-            openBase64NewTab(resume);
+    const handleViewCertificate = (row) => {
+        if (row.original.userProfile.resume) {
+            openBase64NewTab(row.original.userProfile.resume);
         }
     };
 
@@ -43,23 +43,54 @@ const AdminForm = () => {
         { accessorKey: "userProfile.lastName", header: "Last Name" },
         { accessorKey: "userProfile.email", header: "Email" },
         { accessorKey: "userProfile.contact", header: "Contact" },
+        {
+            accessorKey: "userProfile.resume",
+            header: "Resume", Cell: ({ row }) => (
+                <PictureAsPdfIcon onClick={() => handleViewCertificate(row)} style={{ cursor: 'pointer' }} />
+            )
+        },
         { accessorKey: "userProfile.experience", header: "Experience" },
-        { accessorKey: "userProfile.education", header: "Education" },
-        { accessorKey: "userProfile.skills", header: "Skills", renderCell: ({ row }) => row.original.userProfile.skills.join(', ') },
-        { accessorKey: "userProfile.location", header: "Location" },
+        {
+            accessorKey: "userProfile.education",
+            header: "Education",
+            Cell: ({ row }) => (
+                <div style={{ width: '220px' }}>
+                    {row.original.userProfile.education.map((educationInfo, index) => {
+                        const parts = educationInfo.split(" - ");
+                        return (
+                            <div key={index}>
+                                {parts.map((part, index) => (
+                                    <div key={index}>{part}</div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+            )
+        },
+        {
+            accessorKey: "userProfile.location",
+            header: "Location",
+            Cell: ({ row }) => {
+                const locationInfo = row.original.userProfile.location;
+                const [city, state, country] = locationInfo.split(", ");
+                return (
+                    <div>
+                        <div>City: {city}</div>
+                        <div>State: {state}</div>
+                        <div>Country: {country}</div>
+                    </div>
+                );
+            }
+        },
+
+
     ];
 
     const table = useMaterialReactTable({
         data: users,
         columns,
-        enableRowActions: true,
-        renderRowActions: ({ row }) => (
-            <Box>
-                <IconButton onClick={() => handleViewCertificate(row.original.userProfile.resume)}>
-                    <PdfIcon />
-                </IconButton>
-            </Box>
-        ),
+
     });
 
     return (
