@@ -34,6 +34,7 @@ router.post('/forgotpassword', body('email').custom((value) => {
   }
   try {
     const { email } = req.body;
+    console.log(email)
     
       // Check if the user with the provided email exists in your database
       const user = await userInfo.findOne({ email });
@@ -62,6 +63,7 @@ router.post('/forgotpassword', body('email').custom((value) => {
 router.post('/resetpassword', body('password', 'password should have a minimum length of 5').isLength({ min: 5 }), async (req, res) => {
   try {
     const { newPassword, otp } = req.body;
+    console.log(newPassword,otp)
     const email = Object.keys(storedOTPs).find((key) => storedOTPs[key] === otp);
     // Verify the reset password OTP
     const storedOTP = storedOTPs[email];
@@ -70,21 +72,26 @@ router.post('/resetpassword', body('password', 'password should have a minimum l
       return res.status(400).json({ success: false, message: "Invalid OTP." });
     }
     // Update the user's password in the database
+    console.log("hello")
     const user = await userInfo.findOne({ email });
     if (!user) {
       return res.status(400).json({ success: false, message: "User with this email does not exist" });
     }
+    console.log("hi")
     // Hash the new password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
     // Update the user's password with the hashed password
     user.password = hashedPassword;
+    console.log(2)
     // Reset the verification status (if needed)
+    console.log(user.save())
     await user.save();
+    console.log(3)
     // Optionally, you can delete the OTP from the storedOTPs object after successful password reset
     delete storedOTPs[email];
     // Optionally, you can generate a new auth token and send it back to the client
-
+console.log(2);
     return res.status(200).json({ success: true, message: "Password reset successful", });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Internal server error occurred" });

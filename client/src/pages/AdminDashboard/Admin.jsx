@@ -49,6 +49,12 @@ const AdminForm = () => {
                 <PictureAsPdfIcon onClick={() => handleViewCertificate(row)} style={{ cursor: 'pointer' }} />
             )
         },
+        {
+            accessorKey: "userProfile.skills",
+            header: "Skills", Cell: ({ row }) => (
+                <div>{row.original.userProfile.skills.join(', ')}</div>
+            )
+        },
         { accessorKey: "userProfile.experience", header: "Experience" },
         {
             accessorKey: "userProfile.education",
